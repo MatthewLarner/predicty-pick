@@ -24,6 +24,6 @@
   "dependencies": {
     "crel": "^2.1.8",
     "doc-js": "^1.3.0",
-    "predicty": "^1.0.1"
+    "predicty": "^2.0.0"
   }
 }
