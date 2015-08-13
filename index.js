@@ -32,20 +32,22 @@ function renderPredictions(items, predictyPick){
     var fragment = document.createDocumentFragment();
 
     items.forEach(function(item) {
-        var suggestionElement = crel('button',
-            {
-                'class': 'prediction',
-                'style': 'pointer-events: all'
-            },
-            item
-        );
+        if(!(item in predictyPick.itemElements)) {
+            predictyPick.itemElements[item] = crel('button',
+                {
+                    'class': 'prediction',
+                    'style': 'pointer-events: all'
+                },
+                item
+            );
 
-        suggestionElement.addEventListener('click', function() {
-            predictyPick._suggestion = item;
-            predictyPick._acceptPrediction();
-        });
+            predictyPick.itemElements[item].addEventListener('click', function() {
+                predictyPick._suggestion = item;
+                predictyPick._acceptPrediction();
+            });
+        }
 
-        fragment.appendChild(suggestionElement);
+        fragment.appendChild(predictyPick.itemElements[item]);
     });
 
 
@@ -59,6 +61,7 @@ function PredictyPick(){
     var predictyPick = this;
     predictyPick.open = false;
     predictyPick.renderedElement = crel('div', {'class': 'predictyPick'});
+    predictyPick.itemElements = {};
 
     var docPredicty = doc(predictyPick.renderedElement);
 
