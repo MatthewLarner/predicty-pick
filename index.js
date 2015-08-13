@@ -39,6 +39,7 @@ function PredictyPick(){
 
     predictyPick.inputElement.addEventListener('focusin', function(){
         docPredicty.addClass('focus');
+
         if(predictyPick.inputElement.value) {
             predictyPick.value(predictyPick.inputElement.value);
             predictyPick._update();
@@ -58,6 +59,9 @@ function PredictyPick(){
     });
 
     predictyPick.renderedElement.addEventListener('click', function() {
+        // if (doc(event.target.parent) === predictyPick.predictionListElement) {
+        //     return;
+        // }
         docPredicty.removeClass('focus');
         predictyPick.clearPredictions();
         predictyPick.suggestionElement.innerText = '';
@@ -71,10 +75,31 @@ function PredictyPick(){
     predictyPick.renderedElement.appendChild(predictionListElement);
 
     predictyPick.on('accept', function(){
-        predictyPick.inputElement.blur();
-        predictyPick.clearPredictions();
-        docPredicty.removeClass('focus');
+        // predictyPick.inputElement.blur();
+        // docPredicty.removeClass('focus');
+        // predictyPick.clearPredictions();
     });
+
+    predictyPick.renderedElement.addEventListener('keydown', function(event) {
+        if(event.which === 40) { //down
+
+        }
+
+        if(event.which === 38) { //up
+
+        }
+
+        var docPredictionListElement = doc.findOne(predictyPick.predictionListElement);
+        var listLength = docPredictionListElement.children.length;
+
+        doc(predictyPick.docPredictionListElement.children[predictyPick.currentSuggestionIndex]).removeClass('current');
+        predictyPick.currentSuggestionIndex = (predictyPick.currentSuggestionIndex || 0) + 1;
+        doc(predictyPick.docPredictionListElement.children[predictyPick.currentSuggestionIndex]).addClass('current');
+
+
+        // docPredictionListElement
+    });
+
 }
 PredictyPick.prototype.constructor = Predicty;
 PredictyPick.prototype = Object.create(Predicty.prototype);
