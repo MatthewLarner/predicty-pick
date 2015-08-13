@@ -1,10 +1,35 @@
 var Predicty = require('predicty'),
     doc = require('doc-js'),
-    crel = require('crel');
+    crel = require('crel'),
+    scrollTo = require('scroll-into-view'),
+    laidout = require('laidout');
+    // debounce = require('debounce');
+
+function updateCurrentSelection(predictyPick) {
+    var currentSuggestionElement = predictyPick.predictionListElement.children[predictyPick.currentSuggestionIndex];
+
+    if(!currentSuggestionElement) {
+        return;
+    }
+
+    doc(currentSuggestionElement).addClass('current');
+
+    var elementRect = currentSuggestionElement.getBoundingClientRect(),
+        parentRect = currentSuggestionElement.offsetParent.getBoundingClientRect();
+
+    if(elementRect.top < (parentRect.top + currentSuggestionElement.clientHeight) || elementRect.bottom > (parentRect.top + currentSuggestionElement.offsetParent.clientHeight)) {
+        // laidout(currentSuggestionElement, scrollTo.bind(null, currentSuggestionElement));
+        scrollTo(currentSuggestionElement);
+    }
+}
 
 function renderPredictions(items, predictyPick){
     if(!predictyPick.predictionListElement) {
         return;
+    }
+
+    if(predictyPick.predictionListElement.children) {
+        predictyPick.clearPredictions();
     }
 
     var fragment = document.createDocumentFragment();
@@ -26,7 +51,9 @@ function renderPredictions(items, predictyPick){
         fragment.appendChild(suggestionElement);
     });
 
+
     predictyPick.predictionListElement.appendChild(fragment);
+    updateCurrentSelection(predictyPick);
 }
 
 function PredictyPick(){
@@ -81,23 +108,45 @@ function PredictyPick(){
     });
 
     predictyPick.renderedElement.addEventListener('keydown', function(event) {
-        if(event.which === 40) { //down
+        var upKeyPressed = event.which === 38,
+            downKeyPressed = event.which === 40;
 
+        if(!(downKeyPressed || upKeyPressed)) {
+            return;
         }
 
-        if(event.which === 38) { //up
-
+        if(!event.metaKey) {
+            event.preventDefault();
         }
 
-        var docPredictionListElement = doc.findOne(predictyPick.predictionListElement);
-        var listLength = docPredictionListElement.children.length;
+        var parentElement = predictyPick.predictionListElement,
+            listLength = parentElement.children.length,
+            nextIndex,
+            currentSuggestionIndex = predictyPick.currentSuggestionIndex,
+            currentIndexSet = typeof currentSuggestionIndex === 'number';
 
-        doc(predictyPick.docPredictionListElement.children[predictyPick.currentSuggestionIndex]).removeClass('current');
-        predictyPick.currentSuggestionIndex = (predictyPick.currentSuggestionIndex || 0) + 1;
-        doc(predictyPick.docPredictionListElement.children[predictyPick.currentSuggestionIndex]).addClass('current');
+        if(downKeyPressed) { //down
+            nextIndex =  currentIndexSet ? currentSuggestionIndex + 1 : 0;
+            doc(parentElement.children[currentSuggestionIndex]).removeClass('current');
+            currentSuggestionIndex = nextIndex > listLength - 1 ? listLength - 1 : nextIndex;
+        }
 
+        if(upKeyPressed) { //up
+            nextIndex = currentIndexSet ? currentSuggestionIndex - 1 : listLength - 1;
+            doc(parentElement.children[currentSuggestionIndex]).removeClass('current');
+            currentSuggestionIndex = nextIndex < 0 ? 0 : nextIndex;
+        }
 
-        // docPredictionListElement
+        predictyPick.currentSuggestionIndex = currentSuggestionIndex;
+
+        var currentValue = predictyPick.value();
+
+        var items = predictyPick.matchedItems.length ? predictyPick.matchedItems : predictyPick.items();
+
+        predictyPick._suggestion = items[currentSuggestionIndex];
+        predictyPick._updateSuggestion(currentValue, predictyPick._suggestion.slice(currentValue.length));
+
+        updateCurrentSelection(predictyPick);
     });
 
 }
@@ -128,6 +177,8 @@ PredictyPick.prototype._match = function match(value){
             matchedItems.push(items[i]);
         }
     }
+
+    predictyPick.matchedItems = matchedItems;
 
     renderPredictions(matchedItems, predictyPick);
 
