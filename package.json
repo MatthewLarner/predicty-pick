@@ -1,6 +1,6 @@
 {
   "name": "predicty-pick",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An auto-complete component with a suggestion picker",
   "main": "index.js",
   "scripts": {

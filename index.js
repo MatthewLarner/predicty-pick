@@ -40,7 +40,7 @@ function PredictyPick(){
     predictyPick.inputElement.addEventListener('focusin', function(){
         docPredicty.addClass('focus');
         if(predictyPick.inputElement.value) {
-            predicty.value(predictyPick.inputElement.value);
+            predictyPick.value(predictyPick.inputElement.value);
             predictyPick._update();
 
             var valueLength = predictyPick.inputElement.value.length;
