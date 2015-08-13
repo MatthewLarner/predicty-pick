@@ -1,9 +1,7 @@
 var Predicty = require('predicty'),
     doc = require('doc-js'),
     crel = require('crel'),
-    scrollTo = require('scroll-into-view'),
-    laidout = require('laidout');
-    // debounce = require('debounce');
+    scrollTo = require('scroll-into-view');
 
 function updateCurrentSelection(predictyPick) {
     var currentSuggestionElement = predictyPick.predictionListElement.children[predictyPick.currentSuggestionIndex];
@@ -18,7 +16,6 @@ function updateCurrentSelection(predictyPick) {
         parentRect = currentSuggestionElement.offsetParent.getBoundingClientRect();
 
     if(elementRect.top < (parentRect.top + currentSuggestionElement.clientHeight) || elementRect.bottom > (parentRect.top + currentSuggestionElement.offsetParent.clientHeight)) {
-        // laidout(currentSuggestionElement, scrollTo.bind(null, currentSuggestionElement));
         scrollTo(currentSuggestionElement);
     }
 }
@@ -60,11 +57,14 @@ function PredictyPick(){
     Predicty.apply(this, arguments);
 
     var predictyPick = this;
+    predictyPick.open = false;
     predictyPick.renderedElement = crel('div', {'class': 'predictyPick'});
 
     var docPredicty = doc(predictyPick.renderedElement);
 
+
     predictyPick.inputElement.addEventListener('focusin', function(){
+        predictyPick.open = true;
         docPredicty.addClass('focus');
 
         if(predictyPick.inputElement.value) {
@@ -80,19 +80,17 @@ function PredictyPick(){
     });
 
     predictyPick.inputElement.addEventListener('keyup', function() {
-        if (predictyPick.inputElement.value === '') {
+        if (predictyPick.inputElement.value === '' && predictyPick.open) {
             renderPredictions(predictyPick.items(), predictyPick);
         }
     });
 
     predictyPick.renderedElement.addEventListener('click', function() {
-        // if (doc(event.target.parent) === predictyPick.predictionListElement) {
-        //     return;
-        // }
+        predictyPick.open = false;
         docPredicty.removeClass('focus');
         predictyPick.clearPredictions();
         predictyPick.suggestionElement.innerText = '';
-
+        predictyPick.inputElement.blur();
     });
 
     predictyPick.renderedElement.appendChild(predictyPick.element);
@@ -108,6 +106,15 @@ function PredictyPick(){
     });
 
     predictyPick.renderedElement.addEventListener('keydown', function(event) {
+        if(!predictyPick.open) {
+            return;
+        }
+
+        if(event.which === 13) { //enter
+            predictyPick._acceptPrediction();
+            return;
+        }
+
         var upKeyPressed = event.which === 38,
             downKeyPressed = event.which === 40;
 
