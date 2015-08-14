@@ -47,6 +47,8 @@ function renderPredictions(items, predictyPick){
             });
         }
 
+        predictyPick.itemElements[item].className = 'prediction';
+
         fragment.appendChild(predictyPick.itemElements[item]);
     });
 
@@ -101,13 +103,6 @@ function PredictyPick(){
     var predictionListElement = crel('div', {'class': 'predictionList'});
     predictyPick.predictionListElement = predictionListElement;
     predictyPick.renderedElement.appendChild(predictionListElement);
-
-    predictyPick.on('accept', function(){
-        // predictyPick.inputElement.blur();
-        // docPredicty.removeClass('focus');
-        // predictyPick.clearPredictions();
-    });
-
     predictyPick.renderedElement.addEventListener('keydown', function(event) {
         if(!predictyPick.open) {
             return;
@@ -147,16 +142,19 @@ function PredictyPick(){
             currentSuggestionIndex = nextIndex < 0 ? 0 : nextIndex;
         }
 
-        predictyPick.currentSuggestionIndex = currentSuggestionIndex;
 
         var currentValue = predictyPick.value();
 
         var items = predictyPick.matchedItems.length ? predictyPick.matchedItems : predictyPick.items();
 
+        if(currentSuggestionIndex > items.length - 1) {
+            currentSuggestionIndex = 1;
+        }
+
+        predictyPick.currentSuggestionIndex = currentSuggestionIndex;
         predictyPick._suggestion = items[currentSuggestionIndex];
         predictyPick._updateSuggestion(currentValue, predictyPick._suggestion.slice(currentValue.length));
-
-        updateCurrentSelection(predictyPick);
+         updateCurrentSelection(predictyPick);
     });
 
 }
