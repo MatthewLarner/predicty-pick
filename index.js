@@ -5,7 +5,6 @@ var Predicty = require('predicty'),
 
 function updateCurrentSelection(predictyPick) {
     var currentSuggestionElement = predictyPick.predictionListElement.children[predictyPick.currentSuggestionIndex];
-
     if(!currentSuggestionElement) {
         return;
     }
@@ -25,7 +24,7 @@ function renderPredictions(items, predictyPick){
         return;
     }
 
-    if(predictyPick.predictionListElement.children) {
+    if(predictyPick.predictionListElement.children.length) {
         predictyPick.clearPredictions();
     }
 
@@ -36,7 +35,7 @@ function renderPredictions(items, predictyPick){
             predictyPick.itemElements[item] = crel('button',
                 {
                     'class': 'prediction',
-                    'style': 'pointer-events: all'
+                    'type': 'button'
                 },
                 item
             );
@@ -52,7 +51,6 @@ function renderPredictions(items, predictyPick){
         fragment.appendChild(predictyPick.itemElements[item]);
     });
 
-
     predictyPick.predictionListElement.appendChild(fragment);
     updateCurrentSelection(predictyPick);
 }
@@ -61,55 +59,45 @@ function PredictyPick(){
     Predicty.apply(this, arguments);
 
     var predictyPick = this;
-    predictyPick.open = false;
     predictyPick.renderedElement = crel('div', {'class': 'predictyPick'});
     predictyPick.itemElements = {};
 
-    var docPredicty = doc(predictyPick.renderedElement);
-
-
-    predictyPick.inputElement.addEventListener('focusin', function(){
-        predictyPick.open = true;
-        docPredicty.addClass('focus');
-
-        if(predictyPick.inputElement.value) {
-            predictyPick.value(predictyPick.inputElement.value);
-            predictyPick._update();
-
-            var valueLength = predictyPick.inputElement.value.length;
-            predictyPick.inputElement.setSelectionRange(valueLength, valueLength);
-            predictyPick._match(predictyPick.inputElement.value);
+    predictyPick.on('value', function(value){
+        if (value === '') {
+            renderPredictions(predictyPick.items(), predictyPick);
         } else {
-            renderPredictions(predictyPick.items(), predictyPick);
+            predictyPick._match(value);
         }
     });
 
-    predictyPick.inputElement.addEventListener('keyup', function() {
-        if (predictyPick.inputElement.value === '' && predictyPick.open) {
-            renderPredictions(predictyPick.items(), predictyPick);
-        }
+    predictyPick.on('items', function(items){
+        renderPredictions(items, predictyPick);
     });
 
-    predictyPick.renderedElement.addEventListener('click', function() {
-        predictyPick.open = false;
-        docPredicty.removeClass('focus');
-        predictyPick.clearPredictions();
+    predictyPick.on('accept', function(){
         predictyPick.suggestionElement.innerText = '';
-        predictyPick.inputElement.blur();
+        predictyPick.clearPredictions();
     });
 
     predictyPick.renderedElement.appendChild(predictyPick.element);
 
     var predictionListElement = crel('div', {'class': 'predictionList'});
     predictyPick.predictionListElement = predictionListElement;
+
     predictyPick.renderedElement.appendChild(predictionListElement);
     predictyPick.renderedElement.addEventListener('keydown', function(event) {
-        if(!predictyPick.open) {
+        var noMatchedItems = predictyPick.matchedItems.length <= 1;
+
+        if(event.which === 13) { //enter
+            if(noMatchedItems && predictyPick._suggestion == null) {
+               predictyPick._suggestion = predictyPick.inputElement.value;
+            }
+
+            predictyPick._acceptPrediction();
             return;
         }
 
-        if(event.which === 13) { //enter
-            predictyPick._acceptPrediction();
+        if(noMatchedItems && predictyPick.items().length <=1) {
             return;
         }
 
@@ -142,7 +130,6 @@ function PredictyPick(){
             currentSuggestionIndex = nextIndex < 0 ? 0 : nextIndex;
         }
 
-
         var currentValue = predictyPick.value();
 
         var items = predictyPick.matchedItems.length ? predictyPick.matchedItems : predictyPick.items();
@@ -154,9 +141,8 @@ function PredictyPick(){
         predictyPick.currentSuggestionIndex = currentSuggestionIndex;
         predictyPick._suggestion = items[currentSuggestionIndex];
         predictyPick._updateSuggestion(currentValue, predictyPick._suggestion.slice(currentValue.length));
-         updateCurrentSelection(predictyPick);
+        updateCurrentSelection(predictyPick);
     });
-
 }
 PredictyPick.prototype.constructor = Predicty;
 PredictyPick.prototype = Object.create(Predicty.prototype);

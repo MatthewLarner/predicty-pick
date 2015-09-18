@@ -4,7 +4,8 @@
   "description": "An auto-complete component with a suggestion picker",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "browserify ./tests -o ./tests/index.browser.js && google-chrome ./tests/index.html",
+    "watch": "watchify -debug ./tests -o ./tests/index.browser.js & google-chrome ./tests/index.html"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "dependencies": {
     "crel": "^2.1.8",
     "doc-js": "^1.3.0",
-    "predicty": "^2.0.0"
+    "predicty": "^2.0.0",
+    "scroll-into-view": "^1.5.0"
   }
 }
